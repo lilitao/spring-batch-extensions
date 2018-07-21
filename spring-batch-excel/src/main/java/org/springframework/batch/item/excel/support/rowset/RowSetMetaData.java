@@ -31,7 +31,7 @@ public interface RowSetMetaData {
     String[] getColumnNames();
 
     /**
-     * Retrieves the column name for the indicatd column.
+     * Retrieves the column name for the indicated column.
      *
      * @param idx the index of the column, 0 based
      * @return the column name
