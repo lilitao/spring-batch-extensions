@@ -1,32 +1,61 @@
 package org.springframework.batch.item.excel.streamer;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.batch.item.ExecutionContext;
+import org.springframework.batch.item.excel.Sheet;
 import org.springframework.batch.item.excel.mapping.BeanWrapperRowMapper;
 import org.springframework.core.io.ClassPathResource;
-
-import static org.junit.Assert.*;
+import org.springframework.util.StringUtils;
 
 public class StreamerItemReaderTest {
-
+    protected final Log logger = LogFactory.getLog(getClass());
     StreamerItemReader<ExcelBean> reader;
 
-    //@Before
+    @Before
     public void setUp() {
         reader = new StreamerItemReader<>(0);
         reader.setResource(new ClassPathResource("/org/springframework/batch/item/excel/player.xlsx"));
-        reader.setRowMapper(new BeanWrapperRowMapper<ExcelBean>());
+        BeanWrapperRowMapper<ExcelBean> rowMapper = new BeanWrapperRowMapper<>();
+        rowMapper.setTargetType(ExcelBean.class);
+        reader.setRowMapper(rowMapper);
+        reader.setLinesToSkip(1);
         reader.open(new ExecutionContext());
 
     }
 
     @Test
     public void should_open_sheet() {
-        // Sheet   reader.getSheet(0);
+        //when
+        Sheet sheet = reader.getSheet(0);
+        Assertions.assertThat(sheet).isNotNull();
     }
 
-    private class ExcelBean {
+    @Test
+    public void should_get_data_array_from_sheet() {
+        Sheet sheet = reader.getSheet(0);
+        String[] data = null;
+        data = sheet.getRow(0);
+        logger.info(StringUtils.arrayToCommaDelimitedString(data));
+        Assertions.assertThat(data.length).isEqualTo(6);
+        Assertions.assertThat(data).containsExactly("AbduKa00", "Abdul-Jabbar", "Karim", "rb", "1974.0", "1996.0");
+    }
+
+    @Test
+    public void should_get_data_from_excel() throws Exception {
+        ExcelBean data = null;
+        int i = 0;
+        data = reader.read();
+        logger.info(data);
+        Assertions.assertThat(data.toString()).contains("AbduKa00","Abdul-Jabbar","Karim","rb","1974.0","1996.0");
+    }
+
+
+
+    public static class ExcelBean {
         private String id;
         private String lastName;
         private String firstName;
@@ -80,6 +109,18 @@ public class StreamerItemReaderTest {
 
         public void setDebutYear(String debutYear) {
             this.debutYear = debutYear;
+        }
+
+        @Override
+        public String toString() {
+            return "ExcelBean{" +
+                    "id='" + id + '\'' +
+                    ", lastName='" + lastName + '\'' +
+                    ", firstName='" + firstName + '\'' +
+                    ", position='" + position + '\'' +
+                    ", birthYear='" + birthYear + '\'' +
+                    ", debutYear='" + debutYear + '\'' +
+                    '}';
         }
     }
 }

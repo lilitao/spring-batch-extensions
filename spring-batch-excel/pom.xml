@@ -85,6 +85,12 @@
             <artifactId>xlsx-streamer</artifactId>
             <version>1.2.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>3.9.1</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

@@ -8,9 +8,11 @@ import java.util.Iterator;
 public class StreamerSheet extends AbstractPoiSheet {
     Row header;
     Iterator<Row> rows;
+    private int rowNumberOfHeader;
     public StreamerSheet(org.apache.poi.ss.usermodel.Sheet sheetAt,int rowNumberOfHeader) {
         this.delegate = sheetAt;
         rows = delegate.iterator();
+        this.rowNumberOfHeader = rowNumberOfHeader;
         int i = 0;
         while (rows.hasNext()) {
             if (i++ == rowNumberOfHeader) {
@@ -32,6 +34,9 @@ public class StreamerSheet extends AbstractPoiSheet {
 
     @Override
     public String[] getRow(int rowNumber) {
+        if (rowNumber == this.rowNumberOfHeader) {
+            return poiRowConvert2Array(header);
+        }
         if (rows.hasNext()) {
             return poiRowConvert2Array(rows.next());
         }
@@ -40,6 +45,14 @@ public class StreamerSheet extends AbstractPoiSheet {
 
     @Override
     public int getNumberOfColumns() {
-        return header.getLastCellNum() + 1;
+        if (header == null) {
+            return 0;
+        }
+        for (int i = header.getLastCellNum(); i >= 0; i--) {
+            if (header.getCell(i) != null && !"".equals(header.getCell(i).getStringCellValue())) {
+                return i+1;
+            }
+        }
+        return 0;
     }
 }

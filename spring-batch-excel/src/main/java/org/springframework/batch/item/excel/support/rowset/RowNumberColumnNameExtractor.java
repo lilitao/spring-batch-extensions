@@ -17,6 +17,10 @@ package org.springframework.batch.item.excel.support.rowset;
 
 import org.springframework.batch.item.excel.Sheet;
 
+import java.util.Arrays;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 /**
  * {@code ColumnNameExtractor} which returns the values of a given row (default is 0) as the column
  * names.
@@ -28,12 +32,33 @@ public class RowNumberColumnNameExtractor implements ColumnNameExtractor {
 
     private int headerRowNumber;
 
+    private Map<String,String> columnNameMap;
+
     @Override
     public String[] getColumnNames(final Sheet sheet) {
-        return sheet.getRow(headerRowNumber);
+        String[] names = sheet.getRow(headerRowNumber);
+        if (columnNameMap != null && !columnNameMap.isEmpty()) {
+            names =   Arrays.stream(names)
+                    .map(name -> columnNameTransfrom(name))
+                    .collect(Collectors.toList())
+                    .toArray(new String[names.length]);
+        }
+
+        return names;
+    }
+
+    private String columnNameTransfrom(String name) {
+        if (!columnNameMap.containsKey(name)) {
+            return name;
+        }
+        return  columnNameMap.get(name);
     }
 
     public void setHeaderRowNumber(int headerRowNumber) {
         this.headerRowNumber = headerRowNumber;
+    }
+
+    public void setColumnNameMap(Map<String, String> columnNameMap) {
+        this.columnNameMap = columnNameMap;
     }
 }

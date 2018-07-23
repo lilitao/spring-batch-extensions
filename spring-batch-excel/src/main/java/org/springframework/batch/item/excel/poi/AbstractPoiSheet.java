@@ -19,6 +19,10 @@ public abstract class AbstractPoiSheet implements Sheet {
 
         for (int i = 0; i < getNumberOfColumns(); i++) {
             Cell cell = row.getCell(i);
+            if (cell == null) {
+                cells.add("");
+                continue;
+            }
             switch (cell.getCellType()) {
                 case Cell.CELL_TYPE_NUMERIC:
                     if (DateUtil.isCellDateFormatted(cell)) {
