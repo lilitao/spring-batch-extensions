@@ -57,6 +57,12 @@ public class DefaultRowSetMetaData implements RowSetMetaData {
         return sheet.getName();
     }
 
+    @Override
+    public int getLengthOfAvailableColumn() {
+        return columnNameExtractor.getLengthOfAvailableColumn();
+    }
+
+
     public void setColumnNameExtractor(ColumnNameExtractor columnNameExtractor) {
         this.columnNameExtractor = columnNameExtractor;
     }

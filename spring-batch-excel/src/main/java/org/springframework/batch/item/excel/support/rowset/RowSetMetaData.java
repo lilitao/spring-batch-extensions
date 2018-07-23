@@ -51,4 +51,11 @@ public interface RowSetMetaData {
      * @return the name of the sheet
      */
     String getSheetName();
+
+    /**
+     * retrieves the length of available column
+     * @return the length of available column
+     */
+    int getLengthOfAvailableColumn();
+
 }

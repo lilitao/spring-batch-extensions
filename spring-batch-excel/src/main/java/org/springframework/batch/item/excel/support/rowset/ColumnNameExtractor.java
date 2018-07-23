@@ -33,4 +33,15 @@ public interface ColumnNameExtractor {
      */
     String[] getColumnNames(Sheet sheet);
 
+    /**
+     * retrieves the row number of column name row
+     * @return the row number of column name row
+     */
+    int getRowNumberOfColumnNames();
+
+    /**
+     * retrieves the length of available column
+     * @return the length of available column
+     */
+    int getLengthOfAvailableColumn();
 }

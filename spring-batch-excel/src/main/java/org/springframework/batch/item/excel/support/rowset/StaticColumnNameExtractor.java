@@ -38,4 +38,15 @@ public class StaticColumnNameExtractor implements ColumnNameExtractor {
         return this.columnNames;
     }
 
+    @Override
+    public int getRowNumberOfColumnNames() {
+        throw new RuntimeException("not support rowOfNumberOfColumnName in this instance");
+    }
+
+    @Override
+    public int getLengthOfAvailableColumn() {
+        return this.columnNames.length;
+    }
+
+
 }

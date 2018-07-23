@@ -32,4 +32,12 @@ public interface RowSetFactory {
      * @return a RowSet instance.
      */
     RowSet create(Sheet sheet);
+
+    /**
+     * retrieves the column name extractor
+     * @return extractor of column name row
+     */
+    ColumnNameExtractor getColumnNameExtractor();
+
+
 }

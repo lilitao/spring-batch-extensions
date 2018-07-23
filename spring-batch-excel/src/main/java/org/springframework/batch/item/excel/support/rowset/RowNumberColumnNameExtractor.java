@@ -30,16 +30,17 @@ import java.util.stream.Collectors;
  */
 public class RowNumberColumnNameExtractor implements ColumnNameExtractor {
 
-    private int headerRowNumber;
+    private  int lengthOfAvailableColumn = -1;
 
+    private int rowNumberOfColumnNames;
     private Map<String,String> columnNameMap;
 
     @Override
     public String[] getColumnNames(final Sheet sheet) {
-        String[] names = sheet.getRow(headerRowNumber);
+        String[] names = sheet.getRow(rowNumberOfColumnNames);
         if (columnNameMap != null && !columnNameMap.isEmpty()) {
             names =   Arrays.stream(names)
-                    .map(name -> columnNameTransfrom(name))
+                    .map(name -> columnNameTransform(name))
                     .collect(Collectors.toList())
                     .toArray(new String[names.length]);
         }
@@ -47,18 +48,36 @@ public class RowNumberColumnNameExtractor implements ColumnNameExtractor {
         return names;
     }
 
-    private String columnNameTransfrom(String name) {
+    @Override
+    public int getRowNumberOfColumnNames() {
+        return rowNumberOfColumnNames;
+    }
+
+    public void setRowNumberOfColumnNames(int rowNumberOfColumnNames) {
+        this.rowNumberOfColumnNames = rowNumberOfColumnNames;
+    }
+
+
+
+
+    private String columnNameTransform(String name) {
         if (!columnNameMap.containsKey(name)) {
             return name;
         }
         return  columnNameMap.get(name);
     }
 
-    public void setHeaderRowNumber(int headerRowNumber) {
-        this.headerRowNumber = headerRowNumber;
-    }
 
     public void setColumnNameMap(Map<String, String> columnNameMap) {
         this.columnNameMap = columnNameMap;
+    }
+
+
+    public int getLengthOfAvailableColumn() {
+        return lengthOfAvailableColumn;
+    }
+
+    public void setLengthOfAvailableColumn(int lengthOfAvailableColumn) {
+        this.lengthOfAvailableColumn = lengthOfAvailableColumn;
     }
 }

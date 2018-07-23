@@ -36,6 +36,12 @@ public class DefaultRowSetFactory implements RowSetFactory {
         return new DefaultRowSet(sheet, metaData);
     }
 
+    @Override
+    public ColumnNameExtractor getColumnNameExtractor() {
+         return columnNameExtractor;
+    }
+
+
     public void setColumnNameExtractor(ColumnNameExtractor columnNameExtractor) {
         this.columnNameExtractor = columnNameExtractor;
     }

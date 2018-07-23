@@ -8,6 +8,8 @@ import org.junit.Test;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.excel.Sheet;
 import org.springframework.batch.item.excel.mapping.BeanWrapperRowMapper;
+import org.springframework.batch.item.excel.support.rowset.DefaultRowSetFactory;
+import org.springframework.batch.item.excel.support.rowset.RowNumberColumnNameExtractor;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.StringUtils;
 
@@ -17,7 +19,7 @@ public class StreamerItemReaderTest {
 
     @Before
     public void setUp() {
-        reader = new StreamerItemReader<>(0);
+        reader = new StreamerItemReader<>();
         reader.setResource(new ClassPathResource("/org/springframework/batch/item/excel/player.xlsx"));
         BeanWrapperRowMapper<ExcelBean> rowMapper = new BeanWrapperRowMapper<>();
         rowMapper.setTargetType(ExcelBean.class);
@@ -52,6 +54,106 @@ public class StreamerItemReaderTest {
         logger.info(data);
         Assertions.assertThat(data.toString()).contains("AbduKa00","Abdul-Jabbar","Karim","rb","1974.0","1996.0");
     }
+
+    @Test
+    public void shortBeanTest() throws Exception {
+        StreamerItemReader<ExcelBeanShort> reader = new StreamerItemReader<>();
+        reader.setResource(new ClassPathResource("/org/springframework/batch/item/excel/player.xlsx"));
+        BeanWrapperRowMapper<ExcelBeanShort> rowMapper = new BeanWrapperRowMapper<>();
+        rowMapper.setTargetType(ExcelBeanShort.class);
+        reader.setRowMapper(rowMapper);
+        reader.setLinesToSkip(1);
+
+        DefaultRowSetFactory rowSetFactory = new DefaultRowSetFactory();
+        RowNumberColumnNameExtractor columnNameExtractor = new RowNumberColumnNameExtractor();
+        columnNameExtractor.setLengthOfAvailableColumn(4);
+        rowSetFactory.setColumnNameExtractor(columnNameExtractor);
+        reader.setRowSetFactory(rowSetFactory);
+
+        reader.open(new ExecutionContext());
+
+        Sheet sheet = reader.getSheet(0);
+        ExcelBeanShort data = null;
+        data = reader.read();
+        logger.info(data);
+        Assertions.assertThat(data.toString()).contains( "rb");
+    }
+
+    @Test
+    public void shortBeanHeaderForm2Test() throws Exception {
+        StreamerItemReader<ExcelBeanShort> reader = new StreamerItemReader<>();
+        reader.setResource(new ClassPathResource("/org/springframework/batch/item/excel/player.xlsx"));
+        BeanWrapperRowMapper<ExcelBeanShort> rowMapper = new BeanWrapperRowMapper<>();
+        rowMapper.setTargetType(ExcelBeanShort.class);
+        reader.setRowMapper(rowMapper);
+        reader.setLinesToSkip(2);
+
+
+        DefaultRowSetFactory rowSetFactory = new DefaultRowSetFactory();
+        RowNumberColumnNameExtractor columnNameExtractor = new RowNumberColumnNameExtractor();
+        columnNameExtractor.setRowNumberOfColumnNames(1);
+        columnNameExtractor.setLengthOfAvailableColumn(4);
+        rowSetFactory.setColumnNameExtractor(columnNameExtractor);
+        reader.setRowSetFactory(rowSetFactory);
+
+        reader.open(new ExecutionContext());
+
+        Sheet sheet = reader.getSheet(0);
+        ExcelBeanShort data = null;
+        data = reader.read();
+        logger.info(data);
+        Assertions.assertThat(data.toString()).contains( "rb");
+    }
+
+    public static class ExcelBeanShort {
+        private String id;
+        private String lastName;
+        private String firstName;
+        private String position;
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getLastName() {
+            return lastName;
+        }
+
+        public void setLastName(String lastName) {
+            this.lastName = lastName;
+        }
+
+        public String getFirstName() {
+            return firstName;
+        }
+
+        public void setFirstName(String firstName) {
+            this.firstName = firstName;
+        }
+
+        public String getPosition() {
+            return position;
+        }
+
+        public void setPosition(String position) {
+            this.position = position;
+        }
+
+        @Override
+        public String toString() {
+            return "ExcelBeanShort{" +
+                    "id='" + id + '\'' +
+                    ", lastName='" + lastName + '\'' +
+                    ", firstName='" + firstName + '\'' +
+                    ", position='" + position + '\'' +
+                    '}';
+        }
+    }
+
 
 
 

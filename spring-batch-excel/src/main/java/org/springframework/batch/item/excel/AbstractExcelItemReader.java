@@ -48,7 +48,7 @@ public abstract class AbstractExcelItemReader<T> extends AbstractItemCountingIte
     private boolean noInput = false;
     private boolean strict = true;
     private RowSetFactory rowSetFactory = new DefaultRowSetFactory();
-    private RowSet rs;
+    protected RowSet rowSet;
 
     public AbstractExcelItemReader() {
         super();
@@ -61,16 +61,16 @@ public abstract class AbstractExcelItemReader<T> extends AbstractItemCountingIte
      */
     @Override
     protected T doRead() throws Exception {
-        if (this.noInput || this.rs == null) {
+        if (this.noInput || this.rowSet == null) {
             return null;
         }
 
-        if (rs.next()) {
+        if (rowSet.next()) {
             try {
-                return this.rowMapper.mapRow(rs);
+                return this.rowMapper.mapRow(rowSet);
             } catch (final Exception e) {
                 throw new ExcelFileParseException("Exception parsing Excel file.", e, this.resource.getDescription(),
-                        rs.getMetaData().getSheetName(), rs.getCurrentRowIndex(), rs.getCurrentRow());
+                        rowSet.getMetaData().getSheetName(), rowSet.getCurrentRowIndex(), rowSet.getCurrentRow());
             }
         } else {
             this.currentSheet++;
@@ -118,7 +118,7 @@ public abstract class AbstractExcelItemReader<T> extends AbstractItemCountingIte
 
     private void openSheet() {
         final Sheet sheet = this.getSheet(this.currentSheet);
-        this.rs =rowSetFactory.create(sheet);
+        this.rowSet =rowSetFactory.create(sheet);
 
 
         if (logger.isDebugEnabled()) {
@@ -126,8 +126,8 @@ public abstract class AbstractExcelItemReader<T> extends AbstractItemCountingIte
         }
 
         for (int i = 0; i < this.linesToSkip; i++) {
-            if (rs.next() && this.skippedRowsCallback != null) {
-                this.skippedRowsCallback.handleRow(rs);
+            if (rowSet.next() && this.skippedRowsCallback != null) {
+                this.skippedRowsCallback.handleRow(rowSet);
             }
         }
         if (logger.isDebugEnabled()) {
