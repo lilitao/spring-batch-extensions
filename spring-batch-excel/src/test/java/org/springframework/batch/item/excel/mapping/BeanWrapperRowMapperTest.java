@@ -1,8 +1,11 @@
 package org.springframework.batch.item.excel.mapping;
 
+import jdk.management.resource.internal.inst.InitInstrumentation;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.Player;
 import org.springframework.batch.item.excel.MockSheet;
 import org.springframework.batch.item.excel.support.rowset.DefaultRowSetFactory;
@@ -26,6 +29,9 @@ import static org.junit.Assert.*;
  * @since 0.5.0
  */
 public class BeanWrapperRowMapperTest {
+
+    private static Logger logger = LoggerFactory.getLogger(BeanWrapperRowMapperTest.class);
+
 
     @Test(expected = IllegalStateException.class)
     public void givenNoNameWhenInitCompleteThenIllegalStateShouldOccur() throws Exception {
@@ -52,6 +58,14 @@ public class BeanWrapperRowMapperTest {
         public void setSubBean(ArrayList<SubTestBean> subBean) {
             this.subBean = subBean;
         }
+
+        @Override
+        public String toString() {
+            return "TestBean{" +
+                    "id='" + id + '\'' +
+                    ", subBean=" + subBean +
+                    '}';
+        }
     }
     public static class SubTestBean {
         private String id;
@@ -72,6 +86,14 @@ public class BeanWrapperRowMapperTest {
         public void setName(String name) {
             this.name = name;
         }
+
+        @Override
+        public String toString() {
+            return "SubTestBean{" +
+                    "id='" + id + '\'' +
+                    ", name='" + name + '\'' +
+                    '}';
+        }
     }
 
     @Test
@@ -79,7 +101,7 @@ public class BeanWrapperRowMapperTest {
         BeanWrapperRowMapper<TestBean> mapper = new BeanWrapperRowMapper<>();
         mapper.setTargetType(TestBean.class);
         mapper.setStrict(false);
-        mapper.setDistanceLimit(1);
+        //mapper.setDistanceLimit(1);
 
         Properties properties = new Properties();
         properties.put("id","0");
@@ -90,6 +112,9 @@ public class BeanWrapperRowMapperTest {
 
         Mockito.when(rowSet.getProperties()).thenReturn(properties);
         TestBean bean =  mapper.mapRow(rowSet);
+
+        logger.info("result:{}", bean);
+        System.out.println(bean);
 
         Assertions.assertThat(bean).isNotNull();
         Assertions.assertThat(bean.id).isEqualTo("0");
