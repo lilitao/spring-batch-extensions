@@ -30,7 +30,6 @@ import java.util.stream.Collectors;
  */
 public class RowNumberColumnNameExtractor implements ColumnNameExtractor {
 
-    private  int lengthOfAvailableColumn = -1;
 
     private int rowNumberOfColumnNames;
     private Map<String,String> columnNameMap;
@@ -73,11 +72,5 @@ public class RowNumberColumnNameExtractor implements ColumnNameExtractor {
     }
 
 
-    public int getLengthOfAvailableColumn() {
-        return lengthOfAvailableColumn;
-    }
 
-    public void setLengthOfAvailableColumn(int lengthOfAvailableColumn) {
-        this.lengthOfAvailableColumn = lengthOfAvailableColumn;
-    }
 }

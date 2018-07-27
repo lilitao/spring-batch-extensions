@@ -15,6 +15,7 @@
  */
 package org.springframework.batch.item.excel.support.rowset;
 
+import org.apache.poi.ss.usermodel.Row;
 import org.springframework.batch.item.excel.Sheet;
 
 import java.util.Properties;
@@ -40,6 +41,8 @@ public class DefaultRowSet implements RowSet {
         this.metaData = metaData;
     }
 
+
+
     @Override
     public RowSetMetaData getMetaData() {
         return metaData;
@@ -51,6 +54,9 @@ public class DefaultRowSet implements RowSet {
         currentRowIndex++;
         if (currentRowIndex < sheet.getNumberOfRows()) {
             currentRow = sheet.getRow(currentRowIndex);
+            if (currentRow == null) {
+                return false;
+            }
             return true;
         }
         return false;
@@ -79,7 +85,7 @@ public class DefaultRowSet implements RowSet {
         }
 
         Properties props = new Properties();
-        for (int i = 0; i < getLengthOfAvailableColumn(); i++) {
+        for (int i = 0; i <  names.length && i < currentRow.length; i++) {
             String value = currentRow[i];
             if (value != null) {
                 props.setProperty(names[i], value);
@@ -88,9 +94,4 @@ public class DefaultRowSet implements RowSet {
         return props;
     }
 
-    private int getLengthOfAvailableColumn() {
-        if(metaData.getLengthOfAvailableColumn() != -1)
-            return metaData.getLengthOfAvailableColumn();
-        return currentRow.length;
-    }
 }

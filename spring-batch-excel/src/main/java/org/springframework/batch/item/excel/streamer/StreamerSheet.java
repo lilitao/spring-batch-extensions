@@ -4,8 +4,11 @@ import org.apache.poi.ss.usermodel.Row;
 import org.springframework.batch.item.excel.poi.AbstractPoiSheet;
 
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 public class StreamerSheet extends AbstractPoiSheet {
+    List<Row> preHeader = new LinkedList<>();
     Row header;
     Iterator<Row> rows;
     private int rowNumberOfColumnNames;
@@ -18,6 +21,8 @@ public class StreamerSheet extends AbstractPoiSheet {
             if (i++ == rowNumberOfHeader) {
                 header = rows.next();
                 break;
+            } else {
+                preHeader.add(rows.next());
             }
         }
     }

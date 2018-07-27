@@ -39,9 +39,11 @@ public interface ColumnNameExtractor {
      */
     int getRowNumberOfColumnNames();
 
-    /**
-     * retrieves the length of available column
-     * @return the length of available column
-     */
-    int getLengthOfAvailableColumn();
+
+
+    class RowNumberOfColumnNameNotSupportException extends RuntimeException{
+        public RowNumberOfColumnNameNotSupportException(String s) {
+            super(s);
+        }
+    }
 }

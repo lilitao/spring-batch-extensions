@@ -25,7 +25,6 @@ import java.util.Properties;
  * @since 0.5.0
  */
 public interface RowSet {
-
     /**
      * Retrieves the meta data (name of the sheet, number of columns, names) of this row set.
      *

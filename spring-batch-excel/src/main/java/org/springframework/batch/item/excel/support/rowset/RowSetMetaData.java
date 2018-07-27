@@ -52,10 +52,7 @@ public interface RowSetMetaData {
      */
     String getSheetName();
 
-    /**
-     * retrieves the length of available column
-     * @return the length of available column
-     */
-    int getLengthOfAvailableColumn();
+
+
 
 }

@@ -14,7 +14,17 @@ public class StreamerItemReader<T> extends AbstractExcelItemReader<T> {
 
     private int rowCacheSize= 200;
     private int bufferSize  = 1024 * 4;
+
+    private int maxNumberOfSheets = -1;
+
     public StreamerItemReader() {
+    }
+    public int getMaxNumberOfSheets() {
+        return maxNumberOfSheets;
+    }
+
+    public void setMaxNumberOfSheets(int maxNumberOfSheets) {
+        this.maxNumberOfSheets = maxNumberOfSheets;
     }
 
     @Override
@@ -24,6 +34,9 @@ public class StreamerItemReader<T> extends AbstractExcelItemReader<T> {
 
     @Override
     protected int getNumberOfSheets() {
+        if (maxNumberOfSheets > -1 && maxNumberOfSheets <= workbook.getNumberOfSheets()) {
+            return maxNumberOfSheets;
+        }
         return workbook.getNumberOfSheets();
     }
 
