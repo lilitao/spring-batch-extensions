@@ -179,8 +179,7 @@ public class BeanWrapperRowMapper<T> extends DefaultPropertyEditorRegistrar impl
     public T mapRow(RowSet rs) throws BindException {
         T copy = getBean();
         DataBinder binder = createBinder(copy);
-        Properties beanProperties = getBeanProperties(copy, rs.getProperties());
-        binder.bind(new MutablePropertyValues(beanProperties));
+        binder.bind(new MutablePropertyValues(getBeanProperties(copy, rs.getProperties())));
         if (binder.getBindingResult().hasErrors()) {
             throw new BindException(binder.getBindingResult());
         }
@@ -249,10 +248,10 @@ public class BeanWrapperRowMapper<T> extends DefaultPropertyEditorRegistrar impl
 
     /**
      * @param bean
-     * @param properties
+     * @param rowData
      * @return
      */
-    private Properties getBeanProperties(Object bean, Properties properties) {
+    private Properties getBeanProperties(Object bean, RowData rowData) {
 
         Class<?> cls = bean.getClass();
 
@@ -264,17 +263,18 @@ public class BeanWrapperRowMapper<T> extends DefaultPropertyEditorRegistrar impl
         Map<String, String> matches = new HashMap<String, String>(propertiesMatched.get(distanceKey));
 
         @SuppressWarnings({"unchecked", "rawtypes"})
-        Set<String> keys = new HashSet(properties.keySet());
-        for (String key : keys) {
+        Properties pros = new Properties();
+        for (ColumnData column : rowData.getColumns()) {
 
-           /* if (matches.containsKey(key)) {
-                switchPropertyNames(properties, key, matches.get(key));
+            if (matches.containsKey(column.getColumnName())) {
+
+                pros.setProperty(matches.get(column.getColumnName()), column.getData().toString());
                 continue;
-            }*/
+            }
 
-            String name = findPropertyName(bean, key);
+            String name = findPropertyName(bean, column.getColumnName());
 
-            if (name == null) {
+            if (name == null && columnGroups != null) {
                 for (ColumnGroup group : columnGroups) {
                     PropertyDescriptor propertyDescriptor =     BeanUtils.getPropertyDescriptor(bean.getClass(),group.getGroupName());
                     try {
@@ -282,7 +282,7 @@ public class BeanWrapperRowMapper<T> extends DefaultPropertyEditorRegistrar impl
 
                         Class<?> nestPropertyClass = Class.forName(typeName.substring(typeName.indexOf("<") + 1, typeName.indexOf(">")));
                         Object nestedProperty = nestPropertyClass.newInstance();
-                        name = findPropertyName(nestedProperty, key);
+                        name = findPropertyName(nestedProperty, column.getColumnName());
                         if (name != null) {
                             name = processNestPropertyOfBean(name);
                             break;
@@ -308,16 +308,16 @@ public class BeanWrapperRowMapper<T> extends DefaultPropertyEditorRegistrar impl
                             "Duplicate match with distance <= "
                                     + distanceLimit
                                     + " found for this property in input keys: "
-                                    + keys
+                                    + column.getColumnName()
                                     + ". (Consider reducing the distance limit or changing the input key names to get a closer match.)");
                 }
-                matches.put(key, name);
-                switchPropertyNames(properties, key, name);
+                matches.put(column.getColumnName(), name);
+                pros.setProperty(name, column.getData().toString());
             }
         }
 
         propertiesMatched.replace(distanceKey, new ConcurrentHashMap<String, String>(matches));
-        return properties;
+        return pros;
     }
 
     private String findPropertyName(Object bean, String key) {

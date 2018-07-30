@@ -15,6 +15,8 @@
  */
 package org.springframework.batch.item.excel.support.rowset;
 
+import org.springframework.batch.item.excel.mapping.RowData;
+
 import java.util.Properties;
 
 /**
@@ -71,5 +73,5 @@ public interface RowSet {
      * @throws IllegalStateException if the column name meta data is not
      *                               available.
      */
-    Properties getProperties();
+    RowData getProperties();
 }

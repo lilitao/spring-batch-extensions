@@ -17,6 +17,8 @@ package org.springframework.batch.item.excel.support.rowset;
 
 import org.apache.poi.ss.usermodel.Row;
 import org.springframework.batch.item.excel.Sheet;
+import org.springframework.batch.item.excel.mapping.ColumnData;
+import org.springframework.batch.item.excel.mapping.RowData;
 
 import java.util.Properties;
 
@@ -78,17 +80,17 @@ public class DefaultRowSet implements RowSet {
     }
 
     @Override
-    public Properties getProperties() {
+    public RowData getProperties() {
         final String[] names = metaData.getColumnNames();
         if (names == null) {
             throw new IllegalStateException("Cannot create properties without meta data");
         }
 
-        Properties props = new Properties();
+        RowData props = new RowData();
         for (int i = 0; i <  names.length && i < currentRow.length; i++) {
             String value = currentRow[i];
             if (value != null) {
-                props.setProperty(names[i], value);
+                props.addColumn(new ColumnData(names[i], value));
             }
         }
         return props;
