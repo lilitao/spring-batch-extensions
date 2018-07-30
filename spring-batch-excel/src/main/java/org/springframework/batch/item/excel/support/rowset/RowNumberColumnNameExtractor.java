@@ -34,6 +34,8 @@ public class RowNumberColumnNameExtractor implements ColumnNameExtractor {
     private int rowNumberOfColumnNames;
     private Map<String,String> columnNameMap;
 
+
+
     @Override
     public String[] getColumnNames(final Sheet sheet) {
         String[] names = sheet.getRow(rowNumberOfColumnNames);
@@ -44,8 +46,11 @@ public class RowNumberColumnNameExtractor implements ColumnNameExtractor {
                     .toArray(new String[names.length]);
         }
 
+
         return names;
     }
+
+
 
     @Override
     public int getRowNumberOfColumnNames() {
@@ -70,6 +75,7 @@ public class RowNumberColumnNameExtractor implements ColumnNameExtractor {
     public void setColumnNameMap(Map<String, String> columnNameMap) {
         this.columnNameMap = columnNameMap;
     }
+
 
 
 

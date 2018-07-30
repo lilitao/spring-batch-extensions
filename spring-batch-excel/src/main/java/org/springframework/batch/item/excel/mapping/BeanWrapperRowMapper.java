@@ -1,6 +1,7 @@
 package org.springframework.batch.item.excel.mapping;
 
 import org.springframework.batch.item.excel.RowMapper;
+import org.springframework.batch.item.excel.support.rowset.ColumnGroup;
 import org.springframework.batch.item.excel.support.rowset.RowSet;
 import org.springframework.batch.support.DefaultPropertyEditorRegistrar;
 import org.springframework.beans.*;
@@ -12,6 +13,7 @@ import org.springframework.util.ReflectionUtils;
 import org.springframework.validation.BindException;
 import org.springframework.validation.DataBinder;
 
+import java.beans.PropertyDescriptor;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -76,6 +78,25 @@ public class BeanWrapperRowMapper<T> extends DefaultPropertyEditorRegistrar impl
     private int distanceLimit = 5;
 
     private boolean strict = true;
+
+    private List<ColumnGroup> columnGroups;
+
+    /**
+     * add {@link ColumnGroup} to extractor to extract the column name of group to java bean name
+     * @param columnGroup column group
+     */
+    public void addColumnGroup(ColumnGroup columnGroup) {
+        if (this.columnGroups == null) {
+            this.columnGroups = new ArrayList<>();
+        }
+        this.columnGroups.add(columnGroup);
+    }
+    private String columnNameGroupTransform(String name) {
+        for (ColumnGroup group : this.columnGroups)
+            if (group.containColumnName(name))
+                return group.convert2FullColumnName(name);
+        return name;
+    }
 
     /*
      * (non-Javadoc)
@@ -158,11 +179,22 @@ public class BeanWrapperRowMapper<T> extends DefaultPropertyEditorRegistrar impl
     public T mapRow(RowSet rs) throws BindException {
         T copy = getBean();
         DataBinder binder = createBinder(copy);
-        binder.bind(new MutablePropertyValues(getBeanProperties(copy, rs.getProperties())));
+        Properties beanProperties = getBeanProperties(copy, rs.getProperties());
+        binder.bind(new MutablePropertyValues(beanProperties));
         if (binder.getBindingResult().hasErrors()) {
             throw new BindException(binder.getBindingResult());
         }
         return copy;
+    }
+
+    private String processNestPropertyOfBean(String name) {
+        if (columnGroups == null || columnGroups.isEmpty()) {
+            return name;
+        }
+        for (ColumnGroup group : columnGroups)
+             return group.convert2FullColumnName(name);
+
+        return name;
     }
 
     /**
@@ -235,12 +267,38 @@ public class BeanWrapperRowMapper<T> extends DefaultPropertyEditorRegistrar impl
         Set<String> keys = new HashSet(properties.keySet());
         for (String key : keys) {
 
-            if (matches.containsKey(key)) {
+           /* if (matches.containsKey(key)) {
                 switchPropertyNames(properties, key, matches.get(key));
                 continue;
-            }
+            }*/
 
             String name = findPropertyName(bean, key);
+
+            if (name == null) {
+                for (ColumnGroup group : columnGroups) {
+                    PropertyDescriptor propertyDescriptor =     BeanUtils.getPropertyDescriptor(bean.getClass(),group.getGroupName());
+                    try {
+                        String typeName = propertyDescriptor.getReadMethod().getGenericReturnType().getTypeName();
+
+                        Class<?> nestPropertyClass = Class.forName(typeName.substring(typeName.indexOf("<") + 1, typeName.indexOf(">")));
+                        Object nestedProperty = nestPropertyClass.newInstance();
+                        name = findPropertyName(nestedProperty, key);
+                        if (name != null) {
+                            name = processNestPropertyOfBean(name);
+                            break;
+                        }
+                    } catch (ClassNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    } catch (InstantiationException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+
+
 
             if (name != null) {
                 if (matches.containsValue(name)) {

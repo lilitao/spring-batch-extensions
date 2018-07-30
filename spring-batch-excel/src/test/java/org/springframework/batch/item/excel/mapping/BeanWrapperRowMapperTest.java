@@ -1,28 +1,43 @@
 package org.springframework.batch.item.excel.mapping;
 
-import jdk.management.resource.internal.inst.InitInstrumentation;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
-import org.mockito.Mockito;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.Player;
 import org.springframework.batch.item.excel.MockSheet;
+import org.springframework.batch.item.excel.Sheet;
+import org.springframework.batch.item.excel.support.rowset.ColumnGroup;
 import org.springframework.batch.item.excel.support.rowset.DefaultRowSetFactory;
+import org.springframework.batch.item.excel.support.rowset.RowNumberColumnNameExtractor;
 import org.springframework.batch.item.excel.support.rowset.RowSet;
-import org.springframework.beans.factory.config.DeprecatedBeanWarner;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.PropertyAccessorFactory;
+import org.springframework.beans.PropertyAccessorUtils;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindException;
 
+import java.beans.ParameterDescriptor;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.GenericArrayType;
+import java.lang.reflect.GenericDeclaration;
+import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Marten Deinum
@@ -30,7 +45,7 @@ import static org.junit.Assert.*;
  */
 public class BeanWrapperRowMapperTest {
 
-    private static Logger logger = LoggerFactory.getLogger(BeanWrapperRowMapperTest.class);
+    protected final Log logger = LogFactory.getLog(this.getClass());
 
 
     @Test(expected = IllegalStateException.class)
@@ -39,86 +54,69 @@ public class BeanWrapperRowMapperTest {
         mapper.afterPropertiesSet();
     }
 
-    public static class TestBean {
-        private String id;
-        ArrayList<SubTestBean> subBean;
-
-        public String getId() {
-            return id;
-        }
-
-        public void setId(String id) {
-            this.id = id;
-        }
-
-        public ArrayList<SubTestBean> getSubBean() {
-            return subBean;
-        }
-
-        public void setSubBean(ArrayList<SubTestBean> subBean) {
-            this.subBean = subBean;
-        }
-
-        @Override
-        public String toString() {
-            return "TestBean{" +
-                    "id='" + id + '\'' +
-                    ", subBean=" + subBean +
-                    '}';
-        }
-    }
-    public static class SubTestBean {
-        private String id;
-        private String name;
-
-        public String getId() {
-            return id;
-        }
-
-        public void setId(String id) {
-            this.id = id;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        @Override
-        public String toString() {
-            return "SubTestBean{" +
-                    "id='" + id + '\'' +
-                    ", name='" + name + '\'' +
-                    '}';
-        }
-    }
-
     @Test
     public void convertDependentOfBeanTest() throws BindException {
-        BeanWrapperRowMapper<TestBean> mapper = new BeanWrapperRowMapper<>();
-        mapper.setTargetType(TestBean.class);
+        BeanWrapperRowMapper<TestWarpBean> mapper = new BeanWrapperRowMapper<>();
+        mapper.setTargetType(TestWarpBean.class);
         mapper.setStrict(false);
-        //mapper.setDistanceLimit(1);
+        mapper.setDistanceLimit(1);
 
         Properties properties = new Properties();
         properties.put("id","0");
-        properties.put("subBean.id", "0-1");
-        properties.put("subBean.name", "my name");
+        properties.put("subBean[0].sid", "0-1");
+        properties.put("subBean[0].name", "my name");
+        properties.put("subBean[1].sid", "0-2");
+        properties.put("subBean[1].name", "my name 2");
 
-        RowSet rowSet = Mockito.mock(RowSet.class);
+        RowSet rowSet = mock(RowSet.class);
 
-        Mockito.when(rowSet.getProperties()).thenReturn(properties);
-        TestBean bean =  mapper.mapRow(rowSet);
+        when(rowSet.getProperties()).thenReturn(properties);
+        TestWarpBean bean =  mapper.mapRow(rowSet);
 
-        logger.info("result:{}", bean);
+        logger.info("result:{}"+ bean);
         System.out.println(bean);
 
         Assertions.assertThat(bean).isNotNull();
-        Assertions.assertThat(bean.id).isEqualTo("0");
+        Assertions.assertThat(bean.getId()).isEqualTo("0");
 
+    }
+
+    @Test
+    public void should_convert_nested_property_bean_given_column_name() throws BindException {
+        BeanWrapperRowMapper<TestWarpBean> mapper = new BeanWrapperRowMapper<>();
+        mapper.setTargetType(TestWarpBean.class);
+        mapper.setStrict(false);
+        mapper.setDistanceLimit(0);
+
+        DefaultRowSetFactory factory = new DefaultRowSetFactory();
+        ColumnGroup subBean = new ColumnGroup("subBean");
+        subBean.addColumnName("sid", "name");
+        mapper.addColumnGroup(subBean);
+
+
+        Sheet sheet = mock(Sheet.class);
+        when(sheet.getRow(0)).thenReturn(new String[]{"id", "sid", "name", "sid", "name"});
+        when(sheet.getRow(1)).thenReturn(new String[]{"1", "1-1", "name-1-1", "1-2", "name-1-2"});
+        when(sheet.getNumberOfRows()).thenReturn(2);
+        RowSet rowSet = factory.create(sheet);
+
+        rowSet.next();
+        rowSet.next();
+
+        TestWarpBean bean = mapper.mapRow(rowSet);
+        logger.info(bean);
+        Assertions.assertThat(bean).isNotNull();
+        Assertions.assertThat(bean.getId()).isEqualTo("1");
+        Assertions.assertThat(bean.getSubBean().get(0).getSid()).isEqualTo("1-1");
+        Assertions.assertThat(bean.toString()).contains("name-1-2","name-1-1","1-2");
+
+
+    }
+
+    @Test
+    public void typeTest() {
+        String string = "java.util.List<org.springframework.batch.item.excel.mapping.SubTestBean> ";
+        logger.info(string.substring(string.indexOf("<")+1,string.indexOf(">")));
     }
 
     @Test
