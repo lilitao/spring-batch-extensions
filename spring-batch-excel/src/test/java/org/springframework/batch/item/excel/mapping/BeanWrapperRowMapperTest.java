@@ -62,11 +62,11 @@ public class BeanWrapperRowMapperTest {
         mapper.setDistanceLimit(1);
 
         RowData properties = new RowData();
-        properties.addColumn("id","0");
-        properties.addColumn("subBean[0].sid", "0-1");
-        properties.addColumn("subBean[0].name", "my name");
-        properties.addColumn("subBean[1].sid", "0-2");
-        properties.addColumn("subBean[1].name", "my name 2");
+        properties.addColumn(0,"id","0");
+        properties.addColumn(1,"subBean[0].sid", "0-1");
+        properties.addColumn(2,"subBean[0].name", "my name");
+        properties.addColumn(3,"subBean[1].sid", "0-2");
+        properties.addColumn(4,"subBean[1].name", "my name 2");
 
         RowSet rowSet = mock(RowSet.class);
 

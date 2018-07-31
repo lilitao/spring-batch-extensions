@@ -90,7 +90,7 @@ public class DefaultRowSet implements RowSet {
         for (int i = 0; i <  names.length && i < currentRow.length; i++) {
             String value = currentRow[i];
             if (value != null) {
-                props.addColumn(new ColumnData(names[i], value));
+                props.addColumn(i,names[i], value);
             }
         }
         return props;

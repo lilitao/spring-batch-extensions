@@ -264,41 +264,19 @@ public class BeanWrapperRowMapper<T> extends DefaultPropertyEditorRegistrar impl
 
         @SuppressWarnings({"unchecked", "rawtypes"})
         Properties pros = new Properties();
-        for (ColumnData column : rowData.getColumns()) {
+        for (ColumnData columnData : rowData.getColumns()) {
+            String columnNameAsKey = columnData.getColumnName() + ":" + columnData.getColumnNumber();
 
-            if (matches.containsKey(column.getColumnName())) {
-
-                pros.setProperty(matches.get(column.getColumnName()), column.getData().toString());
+            if (matches.containsKey(columnNameAsKey)) {
+                pros.setProperty(matches.get(columnNameAsKey), columnData.getData());
                 continue;
             }
 
-            String name = findPropertyName(bean, column.getColumnName());
+            String name = findPropertyName(bean, columnData.getColumnName());
 
             if (name == null && columnGroups != null) {
-                for (ColumnGroup group : columnGroups) {
-                    PropertyDescriptor propertyDescriptor =     BeanUtils.getPropertyDescriptor(bean.getClass(),group.getGroupName());
-                    try {
-                        String typeName = propertyDescriptor.getReadMethod().getGenericReturnType().getTypeName();
-
-                        Class<?> nestPropertyClass = Class.forName(typeName.substring(typeName.indexOf("<") + 1, typeName.indexOf(">")));
-                        Object nestedProperty = nestPropertyClass.newInstance();
-                        name = findPropertyName(nestedProperty, column.getColumnName());
-                        if (name != null) {
-                            name = processNestPropertyOfBean(name);
-                            break;
-                        }
-                    } catch (ClassNotFoundException e) {
-                        e.printStackTrace();
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
-                    } catch (InstantiationException e) {
-                        e.printStackTrace();
-                    }
-                }
+                name = findPropertyNameFormNestedProperty(bean, columnData, name);
             }
-
-
-
 
             if (name != null) {
                 if (matches.containsValue(name)) {
@@ -308,16 +286,38 @@ public class BeanWrapperRowMapper<T> extends DefaultPropertyEditorRegistrar impl
                             "Duplicate match with distance <= "
                                     + distanceLimit
                                     + " found for this property in input keys: "
-                                    + column.getColumnName()
+                                    + columnData.getColumnName()
                                     + ". (Consider reducing the distance limit or changing the input key names to get a closer match.)");
                 }
-                matches.put(column.getColumnName(), name);
-                pros.setProperty(name, column.getData().toString());
+                matches.put(columnNameAsKey, name);
+                pros.setProperty(name, columnData.getData());
             }
         }
 
         propertiesMatched.replace(distanceKey, new ConcurrentHashMap<String, String>(matches));
         return pros;
+    }
+
+    private String findPropertyNameFormNestedProperty(Object bean, ColumnData columnData, String name) {
+        for (ColumnGroup group : columnGroups) {
+            PropertyDescriptor propertyDescriptor =  BeanUtils.getPropertyDescriptor(bean.getClass(),group.getGroupName());
+            try {
+                String typeName = propertyDescriptor.getReadMethod().getGenericReturnType().getTypeName();
+
+                Class<?> nestPropertyClass = Class.forName(typeName.substring(typeName.indexOf("<") + 1, typeName.indexOf(">")));
+                Object nestedProperty = nestPropertyClass.newInstance();
+                name = findPropertyName(nestedProperty, columnData.getColumnName());
+                if (name != null) {
+                    name = processNestPropertyOfBean(name);
+                    break;
+                }
+            } catch (ClassNotFoundException| IllegalAccessException| InstantiationException e) {
+                throw new BeanPropertyBindingExcelException("excel field:"+columnData.getColumnName()
+                        +";at column number" + columnData.getColumnNumber()
+                        + " mapping to java bean exception: " ,e);
+            }
+        }
+        return name;
     }
 
     private String findPropertyName(Object bean, String key) {
@@ -394,11 +394,6 @@ public class BeanWrapperRowMapper<T> extends DefaultPropertyEditorRegistrar impl
         return nestedValue;
     }
 
-    private void switchPropertyNames(Properties properties, String oldName, String newName) {
-        String value = properties.getProperty(oldName);
-        properties.remove(oldName);
-        properties.setProperty(newName, value);
-    }
 
     /**
      * Public setter for the 'strict' property. If true, then

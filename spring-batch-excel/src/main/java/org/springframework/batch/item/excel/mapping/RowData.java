@@ -7,12 +7,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class RowData  {
+    int rowNumber;
+
     List<ColumnData> column = new LinkedList<>();
-
-    public void addColumn(ColumnData columnData) {
-        column.add(columnData);
-    }
-
     public List<ColumnData> getColumns() {
         return column;
     }
@@ -25,7 +22,20 @@ public class RowData  {
                 .getData();
     }
 
-    public void addColumn(String columnName, String value) {
-        this.addColumn(new ColumnData(columnName,value));
+
+    public int getRowNumber() {
+        return rowNumber;
+    }
+
+    public void setRowNumber(int rowNumber) {
+        this.rowNumber = rowNumber;
+    }
+
+    private void addColumn(ColumnData columnData) {
+        column.add(columnData);
+    }
+
+    public void addColumn(int columnNumber, String columnName, String value) {
+        this.addColumn(new ColumnData(columnNumber, columnName, value));
     }
 }
