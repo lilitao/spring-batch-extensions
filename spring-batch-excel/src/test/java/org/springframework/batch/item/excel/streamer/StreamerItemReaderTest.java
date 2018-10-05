@@ -50,7 +50,7 @@ public class StreamerItemReaderTest {
         reader.setRowSetFactory(rowSetFactory);
 
         rowMapper.setTargetType(UploadBean.class);
-        rowMapper.setDistanceLimit(0);
+        rowMapper.setDistanceLimit(2);
         reader.setRowMapper(rowMapper);
 
         reader.setLinesToSkip(2);

@@ -8,8 +8,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class StreamerSheet extends AbstractPoiSheet {
-    List<Row> preHeader = new LinkedList<>();
-    Row header;
+    List<String[]> preHeader = new LinkedList<>();
+    String[] header;
+    int numberOfColumns;
     Iterator<Row> rows;
     private int rowNumberOfColumnNames;
     public StreamerSheet(org.apache.poi.ss.usermodel.Sheet sheetAt,int rowNumberOfHeader) {
@@ -19,10 +20,12 @@ public class StreamerSheet extends AbstractPoiSheet {
         int i = 0;
         while (rows.hasNext()) {
             if (i++ == rowNumberOfHeader) {
-                header = rows.next();
+                Row headerRow = rows.next();
+                this.numberOfColumns = getNumberOfColumns(headerRow);
+                header = poiRowConvert2Array(headerRow);
                 break;
             } else {
-                preHeader.add(rows.next());
+                preHeader.add(poiRowConvert2Array(rows.next()));
             }
         }
     }
@@ -40,10 +43,10 @@ public class StreamerSheet extends AbstractPoiSheet {
     @Override
     public String[] getRow(int rowNumber) {
         if (rowNumber == this.rowNumberOfColumnNames) {
-            return poiRowConvert2Array(header);
+            return header;
         }
         if (rowNumber < this.rowNumberOfColumnNames) {
-            return poiRowConvert2Array(preHeader.get(rowNumber));
+            return preHeader.get(rowNumber);
         }
         if (rows.hasNext()) {
             return poiRowConvert2Array(rows.next());
@@ -53,6 +56,10 @@ public class StreamerSheet extends AbstractPoiSheet {
 
     @Override
     public int getNumberOfColumns() {
+        return numberOfColumns;
+    }
+
+    private int getNumberOfColumns(Row header) {
         if (header == null) {
             return 0;
         }
