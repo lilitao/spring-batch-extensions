@@ -6,18 +6,24 @@ import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.batch.item.ExecutionContext;
+import org.springframework.batch.item.UploadBean;
 import org.springframework.batch.item.excel.Sheet;
 import org.springframework.batch.item.excel.mapping.BeanWrapperRowMapper;
+import org.springframework.batch.item.excel.mapping.PassThroughRowMapper;
 import org.springframework.batch.item.excel.support.rowset.DefaultRowSetFactory;
 import org.springframework.batch.item.excel.support.rowset.RowNumberColumnNameExtractor;
+import org.springframework.beans.factory.config.DeprecatedBeanWarner;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.StringUtils;
+
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 public class StreamerItemReaderTest {
     protected final Log logger = LogFactory.getLog(getClass());
     StreamerItemReader<ExcelBean> reader;
 
-    @Before
+  //  @Before
     public void setUp() {
         reader = new StreamerItemReader<>();
         reader.setResource(new ClassPathResource("/org/springframework/batch/item/excel/player.xlsx"));
@@ -27,6 +33,49 @@ public class StreamerItemReaderTest {
         reader.setLinesToSkip(1);
         reader.open(new ExecutionContext());
 
+    }
+
+    @Test
+    public void should_retrieve_object_given_2_header_column() throws Exception {
+        StreamerItemReader<UploadBean> reader = new StreamerItemReader<>();
+        reader.setResource(new ClassPathResource("/org/springframework/batch/item/excel/0000PL0026_upload template.xlsx"));
+        BeanWrapperRowMapper<UploadBean> rowMapper = new BeanWrapperRowMapper<>();
+
+        DefaultRowSetFactory rowSetFactory = new DefaultRowSetFactory();
+        RowNumberColumnNameExtractor columnNameExtractor = new RowNumberColumnNameExtractor();
+
+        columnNameExtractor.setRowNumberOfColumnNames(1);
+
+        rowSetFactory.setColumnNameExtractor(columnNameExtractor);
+        reader.setRowSetFactory(rowSetFactory);
+
+        rowMapper.setTargetType(UploadBean.class);
+        rowMapper.setDistanceLimit(0);
+        reader.setRowMapper(rowMapper);
+
+        reader.setLinesToSkip(2);
+
+        reader.open(new ExecutionContext());
+
+        UploadBean bean = reader.read();
+
+        Assertions.assertThat(bean).isNotNull();
+        Assertions.assertThat(bean.getCertNo()).isEqualTo("0000000001");
+        Assertions.assertThat(bean.getRowNumber()).isEqualTo(2);
+    }
+
+
+    @Test
+    public void should_retrieve_code_given_first_row_not_blank() throws Exception {
+        StreamerItemReader<String[]> reader = new StreamerItemReader<>();
+        reader.setResource(new ClassPathResource("/org/springframework/batch/item/excel/0823100429_1000.xlsx"));
+        reader.setRowMapper(new PassThroughRowMapper());
+        reader.open(new ExecutionContext());
+
+
+        String[] firstRow = reader.read();
+
+        Assertions.assertThat(Arrays.stream(firstRow).distinct().toArray()).containsExactly("","20110","21103","20120","31201","31400");
     }
 
     @Test

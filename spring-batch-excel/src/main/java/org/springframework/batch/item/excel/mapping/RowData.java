@@ -10,6 +10,15 @@ public class RowData  {
     int rowNumber;
 
     List<ColumnData> column = new LinkedList<>();
+
+    public RowData(int currentRowIndex) {
+        this.rowNumber = currentRowIndex;
+    }
+
+    public RowData() {
+
+    }
+
     public List<ColumnData> getColumns() {
         return column;
     }

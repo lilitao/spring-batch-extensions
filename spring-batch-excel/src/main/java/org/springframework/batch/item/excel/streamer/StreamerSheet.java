@@ -42,6 +42,9 @@ public class StreamerSheet extends AbstractPoiSheet {
         if (rowNumber == this.rowNumberOfColumnNames) {
             return poiRowConvert2Array(header);
         }
+        if (rowNumber < this.rowNumberOfColumnNames) {
+            return poiRowConvert2Array(preHeader.get(rowNumber));
+        }
         if (rows.hasNext()) {
             return poiRowConvert2Array(rows.next());
         }

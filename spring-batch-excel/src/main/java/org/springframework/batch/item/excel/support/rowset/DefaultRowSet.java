@@ -86,11 +86,12 @@ public class DefaultRowSet implements RowSet {
             throw new IllegalStateException("Cannot create properties without meta data");
         }
 
-        RowData props = new RowData();
+        RowData props = new RowData(this.currentRowIndex);
         for (int i = 0; i <  names.length && i < currentRow.length; i++) {
             String value = currentRow[i];
             if (value != null) {
                 props.addColumn(i,names[i], value);
+
             }
         }
         return props;

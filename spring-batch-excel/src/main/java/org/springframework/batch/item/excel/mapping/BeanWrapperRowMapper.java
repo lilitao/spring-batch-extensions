@@ -295,6 +295,8 @@ public class BeanWrapperRowMapper<T> extends DefaultPropertyEditorRegistrar impl
         }
 
         propertiesMatched.replace(distanceKey, new ConcurrentHashMap<String, String>(matches));
+
+        pros.put("rowNumber", rowData.getRowNumber());
         return pros;
     }
 
