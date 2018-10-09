@@ -19,15 +19,34 @@ public class StreamerSheet extends AbstractPoiSheet {
         this.rowNumberOfColumnNames = rowNumberOfHeader;
         int i = 0;
         while (rows.hasNext()) {
-            if (i++ == rowNumberOfHeader) {
+            if (i == rowNumberOfHeader) {
                 Row headerRow = rows.next();
-                this.numberOfColumns = getNumberOfColumns(headerRow);
-                header = poiRowConvert2Array(headerRow);
+                extractHeaderRow(headerRow);
                 break;
             } else {
-                preHeader.add(poiRowConvert2Array(rows.next()));
+                Row firstRow = rows.next();
+                if (i == firstRow.getRowNum()) {
+                    preHeader.add(poiRowConvert2Array(firstRow));
+                } else {
+                    addBlankRow2PreHaderAndExtractHeader(i, firstRow);
+                    break;
+                }
+
             }
+            i++;
         }
+    }
+
+    private void addBlankRow2PreHaderAndExtractHeader(int i, Row firstRow) {
+        for (int j = i; j < firstRow.getRowNum(); j++) {
+            preHeader.add(new String[0]);
+        }
+        extractHeaderRow(firstRow);
+    }
+
+    private void extractHeaderRow(Row headerRow) {
+        this.numberOfColumns = getNumberOfColumns(headerRow);
+        header = poiRowConvert2Array(headerRow);
     }
 
     @Override

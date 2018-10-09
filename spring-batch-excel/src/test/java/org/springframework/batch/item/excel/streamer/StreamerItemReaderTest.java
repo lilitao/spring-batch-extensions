@@ -1,9 +1,11 @@
 package org.springframework.batch.item.excel.streamer;
 
+import com.monitorjbl.xlsx.StreamingReader;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.assertj.core.api.Assertions;
-import org.junit.Before;
 import org.junit.Test;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.UploadBean;
@@ -12,12 +14,12 @@ import org.springframework.batch.item.excel.mapping.BeanWrapperRowMapper;
 import org.springframework.batch.item.excel.mapping.PassThroughRowMapper;
 import org.springframework.batch.item.excel.support.rowset.DefaultRowSetFactory;
 import org.springframework.batch.item.excel.support.rowset.RowNumberColumnNameExtractor;
-import org.springframework.beans.factory.config.DeprecatedBeanWarner;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.StringUtils;
 
+import java.io.IOException;
 import java.util.Arrays;
-import java.util.stream.Collectors;
+import java.util.Iterator;
 
 public class StreamerItemReaderTest {
     protected final Log logger = LogFactory.getLog(getClass());
@@ -50,7 +52,7 @@ public class StreamerItemReaderTest {
         reader.setRowSetFactory(rowSetFactory);
 
         rowMapper.setTargetType(UploadBean.class);
-        rowMapper.setDistanceLimit(2);
+        rowMapper.setDistanceLimit(1);
         reader.setRowMapper(rowMapper);
 
         reader.setLinesToSkip(2);
@@ -64,6 +66,21 @@ public class StreamerItemReaderTest {
         Assertions.assertThat(bean.getRowNumber()).isEqualTo(2);
     }
 
+    @Test
+    public void should_extract_tow_row_from_excel() throws IOException {
+        ClassPathResource classPathResource = new ClassPathResource("/org/springframework/batch/item/excel/0000PL0026_upload template.xlsx");
+        Workbook workbook = StreamingReader.builder().open(classPathResource.getInputStream());
+        org.apache.poi.ss.usermodel.Sheet sheet = workbook.getSheetAt(0);
+        Iterator<Row> rows = sheet.rowIterator();
+
+        //Row first = rows.next();
+
+        Row second = rows.next();
+
+        Assertions.assertThat(second.getRowNum()).isEqualTo(1);
+        Assertions.assertThat(sheet.getLastRowNum()).isEqualTo(21);
+        Assertions.assertThat(second.getCell(0).getStringCellValue()).isEqualTo("Client");
+    }
 
     @Test
     public void should_retrieve_code_given_first_row_not_blank() throws Exception {

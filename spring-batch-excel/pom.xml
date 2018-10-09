@@ -137,12 +137,12 @@
         <repository>
             <id>dep_releases</id>
             <name>releases repository</name>
-            <url>http://xx.xx.xx:8088/nexus/content/repositories/releases/</url>
+            <url>http://cangzpwsvn01.aia.biz:8088/nexus/content/repositories/releases/</url>
         </repository>
         <snapshotRepository>
             <id>dep_snapshots</id>
             <name>snapshots repository</name>
-            <url>http://xx.xx.xx:8088/nexus/content/repositories/snapshots/</url>
+            <url>http://cangzpwsvn01.aia.biz:8088/nexus/content/repositories/snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
 
